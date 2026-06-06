@@ -48,11 +48,20 @@ Repositori ini sudah dilengkapi dengan file konfigurasi (`wokwi.toml` dan `diagr
 3. Di Wokwi, buka tab `diagram.json`, hapus semua isinya, lalu salin isi file `diagram.json` dari repositori ini ke sana.
 4. Buat tab baru (atau buka `Library Manager` di Wokwi) dan pastikan Anda menambahkan library **PubSubClient** agar tidak terjadi error kompilasi.
 
-**🔌 Panduan Susunan Kabel (Wiring):**
-Bila Anda merangkai ulang kabel atau membuatnya di dunia nyata, berikut adalah susunannya berdasarkan kode yang ada:
-- **Pin 2 (ESP32)** ➡️ dihubungkan ke **LED Merah** (berfungsi sebagai indikator Pompa / Humidifier), kaki satunya ke Ground (GND).
-- **Pin 4 (ESP32)** ➡️ dihubungkan ke **LED Biru** (berfungsi sebagai indikator Kipas), kaki satunya ke Ground (GND).
-*(Catatan: Suhu dan kelembapan dalam kode ini disimulasikan secara otomatis menggunakan rumus, jadi Anda tidak perlu menambahkan sensor fisik seperti DHT pada simulasi Wokwi).*
+**🔌 Panduan Susunan Kabel (Wiring / Rangkaian):**
+Jika Anda merangkai simulasi ini dari awal, ikuti petunjuk sambungan kabel berikut ini. Sangat mudah!
+
+**1. Indikator Pompa / Humidifier (LED Merah)**
+- Siapkan **1 buah LED Merah**.
+- Sambungkan kaki panjang (Positif/Anoda) LED ke **Pin 2** pada ESP32.
+- Sambungkan kaki pendek (Negatif/Katoda) LED ke pin **GND** pada ESP32. *(Sebaiknya gunakan resistor 220 ohm di kaki negatif).*
+
+**2. Indikator Kipas (LED Biru)**
+- Siapkan **1 buah LED Biru**.
+- Sambungkan kaki panjang (Positif/Anoda) LED ke **Pin 4** pada ESP32.
+- Sambungkan kaki pendek (Negatif/Katoda) LED ke pin **GND** pada ESP32. *(Gunakan resistor 220 ohm juga di sini).*
+
+> **💡 Info Penting:** Anda **tidak perlu memasang sensor fisik** (seperti sensor suhu DHT22) pada Wokwi! Nilai suhu dan kelembapan sudah dirancang untuk berjalan otomatis di dalam kodenya.
 
 **Langkah Terakhir Simulasi:**
 - Pastikan pengaturan Wi-Fi pada simulasi menggunakan SSID `"Wokwi-GUEST"` tanpa *password* agar modul dapat terhubung ke internet.
