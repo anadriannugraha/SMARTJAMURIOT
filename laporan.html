@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Kumbung Jamur Tiram</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="laporan.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="header">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <a href="index.html" class="btn-kembali">← Kembali</a>
+            <h1>📋 Laporan Kumbung</h1>
+            <button id="btn-unduh-csv" class="btn-unduh">⬇ Unduh CSV</button>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Navigasi Tanggal -->
+        <div class="kartu nav-tanggal">
+            <button id="btn-kemarin" class="btn-nav">← Kemarin</button>
+            <div class="info-tanggal">
+                <input type="date" id="input-tanggal" class="date-picker">
+                <span id="label-hari" class="label-hari">Hari Ini</span>
+            </div>
+            <button id="btn-hariini" class="btn-nav">Hari Ini →</button>
+        </div>
+
+        <!-- Info Penyimpanan -->
+        <div id="info-storage" class="info-storage">
+            📦 <span id="teks-storage">Memuat informasi penyimpanan...</span>
+        </div>
+
+        <!-- Ringkasan Harian -->
+        <div class="kartu">
+            <h3 style="text-align:left; color:var(--teks-utama); margin-bottom:15px; font-weight:700;">📊 Ringkasan Hari Ini</h3>
+            <div id="grid-ringkasan" class="grid-ringkasan">
+                <div class="kartu-mini" id="rm-optimal">
+                    <div class="rm-label">✅ Jam Optimal</div>
+                    <div class="rm-nilai" id="val-jam-optimal">--</div>
+                </div>
+                <div class="kartu-mini" id="rm-warning">
+                    <div class="rm-label">⚠️ Jam Warning</div>
+                    <div class="rm-nilai" id="val-jam-warning">--</div>
+                </div>
+                <div class="kartu-mini" id="rm-bahaya">
+                    <div class="rm-label">🔴 Jam Bahaya</div>
+                    <div class="rm-nilai" id="val-jam-bahaya">--</div>
+                </div>
+                <div class="kartu-mini">
+                    <div class="rm-label">🌡️ Suhu Maks</div>
+                    <div class="rm-nilai" id="val-suhu-maks">--</div>
+                    <div class="rm-sub" id="sub-suhu-maks"></div>
+                </div>
+                <div class="kartu-mini">
+                    <div class="rm-label">❄️ Suhu Min</div>
+                    <div class="rm-nilai" id="val-suhu-min">--</div>
+                    <div class="rm-sub" id="sub-suhu-min"></div>
+                </div>
+                <div class="kartu-mini">
+                    <div class="rm-label">💧 Lembab Maks</div>
+                    <div class="rm-nilai" id="val-lembab-maks">--</div>
+                </div>
+                <div class="kartu-mini">
+                    <div class="rm-label">🏜️ Lembab Min</div>
+                    <div class="rm-nilai" id="val-lembab-min">--</div>
+                </div>
+                <div class="kartu-mini">
+                    <div class="rm-label">🔔 Total EWS</div>
+                    <div class="rm-nilai" id="val-total-ews">--</div>
+                </div>
+                <div class="kartu-mini">
+                    <div class="rm-label">💨 Kipas Aktif</div>
+                    <div class="rm-nilai" id="val-kipas-total">--</div>
+                </div>
+                <div class="kartu-mini">
+                    <div class="rm-label">💦 Pompa Aktif</div>
+                    <div class="rm-nilai" id="val-pompa-total">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grafik Harian -->
+        <div class="kartu">
+            <h3 style="text-align:left; color:var(--teks-utama); font-weight:700;">📈 Grafik 24 Jam</h3>
+            <div class="grafik-container">
+                <canvas id="grafik-harian"></canvas>
+            </div>
+        </div>
+
+        <!-- Filter Status -->
+        <div class="kartu filter-bar">
+            <label style="font-weight:600; color:var(--teks-sekunder);">Filter Status:</label>
+            <div class="filter-tombol">
+                <button class="btn-filter aktif" data-filter="semua">Semua</button>
+                <button class="btn-filter" data-filter="optimal">✅ Optimal</button>
+                <button class="btn-filter" data-filter="warning">⚠️ Warning</button>
+                <button class="btn-filter" data-filter="bahaya">🔴 Bahaya</button>
+            </div>
+        </div>
+
+        <!-- Daftar Laporan Per Jam -->
+        <div id="kontainer-laporan">
+            <div class="kosong-pesan">
+                <div style="font-size:3rem;">📭</div>
+                <h3>Belum Ada Data Hari Ini</h3>
+                <p>Data akan tersimpan otomatis setiap menit saat sensor terhubung.</p>
+                <p style="margin-top:10px; font-size:0.9rem; color:var(--teks-sekunder);">Buka <a href="index.html">Dashboard Utama</a> agar data mulai direkam.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="laporan.js"></script>
+</body>
+</html>

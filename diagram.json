@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "author": "Adrian Nugraha",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd",
+      "top": -90,
+      "left": 200,
+      "attrs": { "pins": "i2c" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_pompa",
+      "top": 100,
+      "left": 350,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_kipas",
+      "top": 180,
+      "left": 350,
+      "attrs": { "color": "blue" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 105,
+      "left": 290,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": 185,
+      "left": 290,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX0",  "$serialMonitor:RX", "", [] ],
+    [ "esp:RX0",  "$serialMonitor:TX", "", [] ],
+    [ "esp:21",   "lcd:SDA", "green", [] ],
+    [ "esp:22",   "lcd:SCL", "blue", [] ],
+    [ "esp:3.3V", "lcd:VCC", "red", [] ],
+    [ "esp:GND.1","lcd:GND", "black", [] ],
+    [ "esp:2",    "r1:1",    "red", [] ],
+    [ "r1:2",     "led_pompa:A", "red", [] ],
+    [ "led_pompa:K", "esp:GND.2", "black", [] ],
+    [ "esp:4",    "r2:1",    "blue", [] ],
+    [ "r2:2",     "led_kipas:A", "blue", [] ],
+    [ "led_kipas:K", "esp:GND.3", "black", [] ]
+  ]
+}

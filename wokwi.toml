@@ -1,0 +1,7 @@
+[wokwi]
+version = 1
+elf = ".build/sketch.ino.elf"
+firmware = ".build/sketch.ino.bin"
+
+[env]
+arduino-cli-version = "1.4.1"

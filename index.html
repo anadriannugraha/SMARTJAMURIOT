@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantau Jamur Tiram</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { padding-bottom: 80px; }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: white;
+            display: flex;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            z-index: 200;
+        }
+        .bottom-nav a {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 5px 10px;
+            text-decoration: none;
+            color: var(--teks-sekunder);
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: 0.2s;
+            gap: 3px;
+        }
+        .bottom-nav a .nav-ikon { font-size: 1.5rem; }
+        .bottom-nav a.aktif { color: var(--hijau); }
+        .bottom-nav a:hover { color: var(--hijau); }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+    <!-- Banner Error Koneksi -->
+    <div id="banner-error" class="banner-error tersembunyi">
+        ⚠️ Sensor Tidak Terhubung. Memeriksa jaringan...
+    </div>
+
+    <div class="header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>🍄 Pantau Jamur Tiram</h1>
+            <button id="btn-pengaturan" class="btn-pengaturan" title="Pengaturan">⚙️</button>
+        </div>
+        <div class="koneksi">
+            <span id="conn-text" class="status-koneksi offline">Menghubungkan ke Sensor...</span>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <!-- Toggle Mode Operasi -->
+        <div class="kartu mode-operasi">
+            <h3 class="judul-mode">Mode Kendali Mesin</h3>
+            <div class="toggle-switch-wadah">
+                <span id="label-manual" class="label-toggle">Manual</span>
+                <label class="switch-besar">
+                    <input type="checkbox" id="toggle-mode" checked> <!-- Default Auto -->
+                    <span class="slider-besar bulat"></span>
+                </label>
+                <span id="label-otomatis" class="label-toggle aktif-teks">Otomatis</span>
+            </div>
+            <p id="deskripsi-mode" class="deskripsi-mode">Semua mesin dikendalikan otomatis oleh sistem.</p>
+        </div>
+
+        <!-- Pilihan Fase Budidaya (Pill Modern) -->
+        <div class="kartu fase-wadah">
+            <h3>Fase Budidaya Saat Ini</h3>
+            <div class="pill-container">
+                <button id="btn-inkubasi" class="pill-btn aktif">Masa Inkubasi</button>
+                <button id="btn-tubuh-buah" class="pill-btn">Masa Panen</button>
+            </div>
+        </div>
+
+        <!-- Kartu Kesimpulan Utama dengan Animasi -->
+        <div id="kartu-utama" class="kartu kartu-utama hijau">
+            <div id="icon-utama" class="icon-raksasa pulse">⏳</div>
+            <h2 id="kesimpulan-utama">Menunggu data dari kebun...</h2>
+        </div>
+
+        <!-- Saran Tindakan -->
+        <div id="kartu-saran" class="kartu saran-tindakan aman">
+            <div class="saran-konten">
+                <div class="saran-ikon">💡</div>
+                <div class="saran-teks-wadah">
+                    <h3>Saran Tindakan:</h3>
+                    <p id="teks-saran">Memuat saran...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Angka Utama (Suhu & Kelembaban) dengan Donut Chart -->
+        <div class="grid-2">
+            <!-- Suhu -->
+            <div class="kartu kartu-lingkaran">
+                <h3>Suhu Ruangan</h3>
+                <div class="lingkaran-wadah">
+                    <canvas id="gaugeSuhu"></canvas>
+                    <div class="angka-tengah">
+                        <span id="temp-val">--</span><span class="satuan">°C</span>
+                    </div>
+                </div>
+                <div id="temp-status" class="status-singkat">Menunggu...</div>
+            </div>
+            
+            <!-- Kelembaban -->
+            <div class="kartu kartu-lingkaran">
+                <h3>Kelembaban Air</h3>
+                <div class="lingkaran-wadah">
+                    <canvas id="gaugeLembab"></canvas>
+                    <div class="angka-tengah">
+                        <span id="hum-val">--</span><span class="satuan">%</span>
+                    </div>
+                </div>
+                <div id="hum-status" class="status-singkat">Menunggu...</div>
+            </div>
+        </div>
+
+        <!-- Kontrol Manual -->
+        <div class="grid-2">
+            <div class="kartu kontrol">
+                <div class="ikon-mesin">💨</div>
+                <h3 class="judul-mesin">Kipas Angin</h3>
+                <button id="btn-kipas" class="btn-mesin mati" disabled>Nyalakan Kipas</button>
+                <div id="status-kipas-teks" class="status-mesin-teks">Mati</div>
+            </div>
+            <div class="kartu kontrol">
+                <div class="ikon-mesin">💧</div>
+                <h3 class="judul-mesin">Pompa Air</h3>
+                <button id="btn-pompa" class="btn-mesin mati" disabled>Semprot Air</button>
+                <div id="status-pompa-teks" class="status-mesin-teks">Mati</div>
+            </div>
+        </div>
+
+        <!-- Grafik Riwayat -->
+        <div class="kartu">
+            <div class="header-grafik">
+                <h3>Riwayat Hari Ini</h3>
+                <div class="minmax-wadah">
+                    <span id="minmax-suhu" class="badge-minmax merah-teks">Suhu: --°C</span>
+                    <span id="minmax-lembab" class="badge-minmax biru-teks">Lembab: --%</span>
+                </div>
+            </div>
+            <div class="grafik-container">
+                <canvas id="grafik-jamur"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Pengaturan -->
+    <div id="modal-pengaturan" class="modal-overlay tersembunyi">
+        <div class="modal-konten">
+            <div class="modal-header">
+                <h2>⚙️ Pengaturan Alat</h2>
+                <button id="btn-tutup-modal-atas" class="btn-tutup-bulat">✖</button>
+            </div>
+            <div class="modal-body">
+                <!-- Pengaturan Suhu -->
+                <div class="set-grup">
+                    <h3>🌡️ Batas Suhu Ruangan (°C)</h3>
+                    
+                    <div class="input-baris">
+                        <label>Ideal Minimal</label>
+                        <div class="kontrol-angka">
+                            <button class="btn-min" onclick="ubahNilai('s-min', -1)">-</button>
+                            <span id="val-s-min" class="angka-teks">22</span>
+                            <button class="btn-plus" onclick="ubahNilai('s-min', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="input-baris">
+                        <label>Ideal Maksimal</label>
+                        <div class="kontrol-angka">
+                            <button class="btn-min" onclick="ubahNilai('s-max', -1)">-</button>
+                            <span id="val-s-max" class="angka-teks">26</span>
+                            <button class="btn-plus" onclick="ubahNilai('s-max', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="input-baris">
+                        <label>Suhu Kipas Nyala (Warning)</label>
+                        <div class="kontrol-angka">
+                            <button class="btn-min" onclick="ubahNilai('s-warn', -1)">-</button>
+                            <span id="val-s-warn" class="angka-teks">28</span>
+                            <button class="btn-plus" onclick="ubahNilai('s-warn', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="input-baris">
+                        <label>Suhu Bahaya</label>
+                        <div class="kontrol-angka">
+                            <button class="btn-min" onclick="ubahNilai('s-bahaya', -1)">-</button>
+                            <span id="val-s-bahaya" class="angka-teks">32</span>
+                            <button class="btn-plus" onclick="ubahNilai('s-bahaya', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="preview-box">
+                        💡 Kipas otomatis menyala jika suhu lebih dari <b id="prev-s-warn">28</b>°C
+                    </div>
+                </div>
+
+                <!-- Pengaturan Kelembaban -->
+                <div class="set-grup">
+                    <h3>💧 Batas Kelembaban Air (%)</h3>
+                    
+                    <div class="input-baris">
+                        <label>Pompa Nyala (Terlalu Kering)</label>
+                        <div class="kontrol-angka">
+                            <button class="btn-min" onclick="ubahNilai('l-kering', -1)">-</button>
+                            <span id="val-l-kering" class="angka-teks">60</span>
+                            <button class="btn-plus" onclick="ubahNilai('l-kering', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="input-baris">
+                        <label>Ideal Minimal</label>
+                        <div class="kontrol-angka">
+                            <button class="btn-min" onclick="ubahNilai('l-min', -1)">-</button>
+                            <span id="val-l-min" class="angka-teks">60</span>
+                            <button class="btn-plus" onclick="ubahNilai('l-min', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="input-baris">
+                        <label>Ideal Maksimal</label>
+                        <div class="kontrol-angka">
+                            <button class="btn-min" onclick="ubahNilai('l-max', -1)">-</button>
+                            <span id="val-l-max" class="angka-teks">70</span>
+                            <button class="btn-plus" onclick="ubahNilai('l-max', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="input-baris">
+                        <label>Terlalu Basah</label>
+                        <div class="kontrol-angka">
+                            <button class="btn-min" onclick="ubahNilai('l-basah', -1)">-</button>
+                            <span id="val-l-basah" class="angka-teks">95</span>
+                            <button class="btn-plus" onclick="ubahNilai('l-basah', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="preview-box">
+                        💡 Semprotan otomatis menyala jika kelembaban kurang dari <b id="prev-l-kering">60</b>%
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-reset-pengaturan" class="btn-modal btn-reset">Reset Default</button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-tutup-modal" class="btn-modal btn-tutup">Tutup</button>
+                    <button id="btn-simpan-pengaturan" class="btn-modal btn-simpan">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="aktif">
+            <span class="nav-ikon">🏠</span>
+            Dashboard
+        </a>
+        <a href="laporan.html">
+            <span class="nav-ikon">📋</span>
+            Laporan
+        </a>
+    </nav>
+
+    <script src="script.js"></script>
+</body>
+</html>
